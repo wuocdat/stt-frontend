@@ -2,6 +2,7 @@ import {
     Button,
     Center,
     Flex,
+    Group,
     LoadingOverlay,
     Paper,
     ScrollArea,
@@ -12,7 +13,7 @@ import {
     rem,
     useMantineTheme,
 } from "@mantine/core";
-import { IconBolt } from "@tabler/icons-react";
+import { IconBolt, IconPlayerPlayFilled } from "@tabler/icons-react";
 import axios from "axios";
 import { ChangeEvent, useState } from "react";
 
@@ -26,7 +27,7 @@ function App() {
 
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [resultText, setResultText] = useState("");
+    const [result, setResult] = useState<Transcription | null>(null);
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
@@ -43,13 +44,22 @@ function App() {
                     }
                 );
 
-                if (data) setResultText(data.text);
+                if (data) setResult(data);
             } catch (error) {
                 console.log(error);
             } finally {
                 setIsLoading(false);
             }
         }
+    };
+
+    const getYoutubeVideoId = (url: string) => {
+        const startIndex = url.indexOf("?v=") + 3;
+        const endIndex =
+            url.indexOf("&", startIndex) !== -1
+                ? url.indexOf("&", startIndex)
+                : url.length;
+        return url.substring(startIndex, endIndex);
     };
 
     return (
@@ -85,17 +95,33 @@ function App() {
                             chuyển đổi
                         </Button>
                     </Stack>
-                    <ScrollArea
-                        h={250}
+                    <Stack
+                        mt={result ? rem(48) : rem(72)}
                         w="100%"
-                        mt={rem(72)}
-                        p="lg"
-                        bg={theme.colors.blue[0]}
-                        sx={{ borderRadius: theme.spacing.xs }}
+                        align="center"
                     >
-                        <LoadingOverlay visible={isLoading} />
-                        <Text>{resultText}</Text>
-                    </ScrollArea>
+                        {!!result && (
+                            <iframe
+                                width="400"
+                                height="200"
+                                src={`https://www.youtube.com/embed/${getYoutubeVideoId(
+                                    inputValue
+                                )}`}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            ></iframe>
+                        )}
+
+                        <ScrollArea
+                            h={250}
+                            w="100%"
+                            p="lg"
+                            bg={theme.colors.blue[0]}
+                            sx={{ borderRadius: theme.spacing.xs }}
+                        >
+                            <LoadingOverlay visible={isLoading} />
+                            <Text>{result?.text}</Text>
+                        </ScrollArea>
+                    </Stack>
                 </Flex>
             </Paper>
         </Center>
