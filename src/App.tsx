@@ -13,8 +13,9 @@ import {
     rem,
     useMantineTheme,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { IconBolt, IconPlayerPlayFilled } from "@tabler/icons-react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { ChangeEvent, useState } from "react";
 
 type Transcription = {
@@ -46,7 +47,22 @@ function App() {
 
                 if (data) setResult(data);
             } catch (error) {
-                console.log(error);
+                if (
+                    error instanceof AxiosError &&
+                    error.response &&
+                    error.response?.data
+                ) {
+                    notifications.show({
+                        title: "Error!",
+                        message: error.response.data?.error || "",
+                        color: "red",
+                    });
+                } else
+                    notifications.show({
+                        title: "Error!",
+                        message: "Something wrong!",
+                        color: "red",
+                    });
             } finally {
                 setIsLoading(false);
             }
